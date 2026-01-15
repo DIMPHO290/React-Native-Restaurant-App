@@ -1,0 +1,1 @@
+import RestaurantScreen from "../../../src/screens/admin/Restaurant"; export default RestaurantScreen;

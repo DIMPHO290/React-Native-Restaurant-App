@@ -1,0 +1,1 @@
+import DashboardScreen from "../../../src/screens/admin/Dashboard"; export default DashboardScreen;

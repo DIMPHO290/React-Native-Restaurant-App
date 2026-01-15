@@ -9,14 +9,14 @@ import ordersReducer from './ordersSlice';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'cart', 'orders']
+  whitelist: ['auth', 'cart', 'orders'],
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
   menu: menuReducer,
   cart: cartReducer,
-  orders: ordersReducer
+  orders: ordersReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -26,9 +26,9 @@ export const store = configureStore({
   middleware: (getDefault) =>
     getDefault({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE']
-      }
-    })
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      },
+    }),
 });
 
 export const persistor = persistStore(store);

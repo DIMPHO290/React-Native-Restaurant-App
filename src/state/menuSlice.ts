@@ -1,25 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { FoodItem, FoodCategory } from '@/types';
-import { MENU } from '@/data/menu';
-
-type MenuState = {
-  items: FoodItem[];
-  category: FoodCategory | 'All';
-};
-
-const initialState: MenuState = {
-  items: MENU,
-  category: 'All'
-};
+import { createSlice } from "@reduxjs/toolkit";
+import { menuItems } from "../data/menu";
 
 const menuSlice = createSlice({
-  name: 'menu',
-  initialState,
+  name: "menu",
+  initialState: { items: menuItems, category: "All" as string },
   reducers: {
-    setCategory(state, action: PayloadAction<MenuState['category']>) {
-      state.category = action.payload;
-    }
-  }
+    setCategory: (state, action) => { state.category = action.payload; },
+  },
 });
 
 export const { setCategory } = menuSlice.actions;
