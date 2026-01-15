@@ -48,7 +48,7 @@ Admins have a dedicated dashboard to manage items, view orders, and analyze rest
 
 1. Clone the repo:  
 ```bash
-git https://github.com/DIMPHO290/react-native-note-taker.git
+https://github.com/DIMPHO290/React-Native-Restaurant-App.git
 ```
 2. Navigate to project folder:  
 ```bash
