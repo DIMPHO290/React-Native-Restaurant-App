@@ -1,58 +1,52 @@
-import { createSlice, PayloadAction, nanoid } from '@reduxjs/toolkit';
-import { CartItem, CartCustomization, FoodItem } from '@/types';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type CartState = {
-  items: CartItem[];
+type Extra = { id: string; name: string; price: number };
+type Side = { id: string; name: string; included?: boolean; price?: number };
+type Drink = { id: string; name: string; price?: number };
+
+export type CartItem = {
+  id: number;            // menu item id
+  name: string;
+  basePrice: number;
+  quantity: number;
+  sides?: Side[];        // chosen sides (some included)
+  drinks?: Drink[];      // chosen drinks (may add price)
+  extras?: Extra[];      // add-on extras (adds price)
+  notes?: string;        // optional ingredients removed/added
 };
+
+type CartState = { items: CartItem[] };
 
 const initialState: CartState = { items: [] };
 
-function calcExtraTotal(custom: CartCustomization): number {
-  const extrasTotal = (custom.extras ?? []).reduce((sum, e) => sum + e.priceDelta, 0);
-  const drinkDelta = custom.drinkChoice?.priceDelta ?? 0;
-  return extrasTotal + drinkDelta;
-}
-
 const cartSlice = createSlice({
-  name: 'cart',
+  name: "cart",
   initialState,
   reducers: {
-    addToCart(
-      state,
-      action: PayloadAction<{ item: FoodItem; qty: number; custom: CartCustomization }>
-    ) {
-      const { item, qty, custom } = action.payload;
-      const id = nanoid();
-      state.items.push({
-        id,
-        itemId: item.id,
-        qty,
-        basePrice: item.price,
-        custom,
-        name: item.name,
-        image: item.image
-      });
+    addToCart: (state, action: PayloadAction<CartItem>) => {
+      const key = JSON.stringify({ id: action.payload.id, sides: action.payload.sides, drinks: action.payload.drinks, extras: action.payload.extras, notes: action.payload.notes });
+      const existing = state.items.find(i => JSON.stringify({ id: i.id, sides: i.sides, drinks: i.drinks, extras: i.extras, notes: i.notes }) === key);
+      if (existing) existing.quantity += action.payload.quantity;
+      else state.items.push(action.payload);
     },
-    removeFromCart(state, action: PayloadAction<{ id: string }>) {
-      state.items = state.items.filter((i) => i.id !== action.payload.id);
+    updateQuantity: (state, action: PayloadAction<{ index: number; quantity: number }>) => {
+      const item = state.items[action.payload.index];
+      if (!item) return;
+      item.quantity = Math.max(1, action.payload.quantity);
     },
-    clearCart(state) {
+    removeItem: (state, action: PayloadAction<number>) => {
+      state.items.splice(action.payload, 1);
+    },
+    clearCart: (state) => {
       state.items = [];
     },
-    editQty(state, action: PayloadAction<{ id: string; qty: number }>) {
-      const it = state.items.find((i) => i.id === action.payload.id);
-      if (it) it.qty = Math.max(1, action.payload.qty);
+    updateItemOptions: (state, action: PayloadAction<{ index: number; sides?: Side[]; drinks?: Drink[]; extras?: Extra[]; notes?: string }>) => {
+      const item = state.items[action.payload.index];
+      if (!item) return;
+      Object.assign(item, action.payload);
     },
-    editCustomization(state, action: PayloadAction<{ id: string; custom: CartCustomization }>) {
-      const it = state.items.find((i) => i.id === action.payload.id);
-      if (it) it.custom = action.payload.custom;
-    }
-  }
+  },
 });
 
-export const { addToCart, removeFromCart, clearCart, editQty, editCustomization } = cartSlice.actions;
-
-export const calcCartTotal = (items: CartItem[]): number =>
-  items.reduce((sum, i) => sum + (i.basePrice + calcExtraTotal(i.custom)) * i.qty, 0);
-
+export const { addToCart, updateQuantity, removeItem, clearCart, updateItemOptions } = cartSlice.actions;
 export default cartSlice.reducer;

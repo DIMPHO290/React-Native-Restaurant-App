@@ -1,34 +1,45 @@
-import React from 'react';
-import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { FoodItem } from '@/types';
+import React from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../src/state/cartSlice";
 
-type Props = { item: FoodItem; onPress: () => void };
+type Props = {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: any;
+};
 
-export default function FoodCard({ item, onPress }: Props) {
+export default function FoodCard({ id, name, description, price, image }: Props) {
+  const dispatch = useDispatch();
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <Image source={{ uri: item.image }} style={styles.img} />
+    <View style={styles.card}>
+      <Image source={image} style={styles.image} />
       <View style={styles.info}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.desc} numberOfLines={2}>{item.description}</Text>
-        <Text style={styles.price}>R {item.price.toFixed(2)}</Text>
+        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.desc}>{description}</Text>
+        <Text style={styles.price}>R{price}</Text>
+       <TouchableOpacity
+  style={styles.button}
+  onPress={() => dispatch(addToCart({ id, name, price }))} // <-- id included
+>
+  <Text style={styles.buttonText}>Add to Cart</Text>
+</TouchableOpacity>
+
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#eee',
-    marginBottom: 14
-  },
-  img: { height: 140, width: '100%' },
-  info: { padding: 12 },
-  name: { fontSize: 16, fontWeight: '700', color: '#1f1f1f' },
-  desc: { fontSize: 12, color: '#666', marginTop: 4 },
-  price: { marginTop: 8, fontSize: 14, fontWeight: '700', color: '#1f7aed' }
+  card: { flexDirection: "row", backgroundColor: "#fff", borderRadius: 12, marginBottom: 12, overflow: "hidden", elevation: 2 },
+  image: { width: 100, height: 100 },
+  info: { flex: 1, padding: 12 },
+  name: { fontSize: 16, fontWeight: "700" },
+  desc: { fontSize: 12, color: "#666", marginVertical: 4 },
+  price: { fontSize: 14, fontWeight: "600", color: "#1f7aed" },
+  button: { backgroundColor: "#1f7aed", padding: 8, borderRadius: 6, marginTop: 8 },
+  buttonText: { color: "#fff", textAlign: "center", fontWeight: "600" },
 });

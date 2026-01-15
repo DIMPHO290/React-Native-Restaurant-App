@@ -1,67 +1,64 @@
-import { FoodItem } from '@types';
-
-export const MENU: FoodItem[] = [
+// export const menuItems = [
+//   {
+//     id: 1,
+//     name: "Margherita Pizza",
+//     description: "Classic pizza with fresh basil and mozzarella",
+//     price: 80,
+//     category: "Pizza",
+//     image: require("../../assets/pizza.png"),
+//   },
+//   {
+//     id: 2,
+//     name: "Cheeseburger",
+//     description: "Juicy beef patty with cheddar cheese",
+//     price: 65,
+//     category: "Burgers",
+//     image: require("../../assets/burger.png"),
+//   },
+//   {
+//     id: 3,
+//     name: "Coke",
+//     description: "Refreshing cold drink",
+//     price: 20,
+//     category: "Drinks",
+//     image: require("../../assets/coke.png"),
+//   },
+// ];
+export const menuItems = [
   {
-    id: 'b1',
-    name: 'Classic Beef Burger',
-    description: '200g beef patty, cheese, tomato, lettuce, house sauce.',
-    price: 89.99,
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349',
-    category: 'Burgers',
-    sides: ['Chips', 'Salad', 'Pap'],
-    drinks: [
-      { label: 'Cola' },
-      { label: 'Sparkling Water' },
-      { label: 'Craft Beer', priceDelta: 20 }
-    ],
-    extras: [
-      { label: 'Extra cheese', priceDelta: 12 },
-      { label: 'Extra patty', priceDelta: 35 },
-      { label: 'Sauces trio', priceDelta: 15 }
-    ],
-    options: [{ label: 'Lettuce', removable: true }, { label: 'Onion', removable: true }]
+    id: 1,
+    name: "Margherita Pizza",
+    description: "Classic pizza with basil, mozzarella, tomato.",
+    price: 80,
+    category: "Pizza",
+    image: require("../../assets/pizza.png"),
+    sides: [{ id: "pap", name: "Pap", included: true }, { id: "chips", name: "Chips", included: true }, { id: "salad", name: "Salad", included: true }],
+    drinks: [{ id: "coke", name: "Coke", price: 20 }, { id: "water", name: "Water", price: 15 }],
+    extras: [{ id: "extra-cheese", name: "Extra cheese", price: 12 }, { id: "sauce", name: "Garlic sauce", price: 8 }],
+    options: { removable: ["lettuce"] },
   },
   {
-    id: 'm1',
-    name: 'Grilled Chicken Plate',
-    description: 'Free-range chicken breast with seasonal veg.',
-    price: 119.99,
-    image: 'https://images.unsplash.com/photo-1604908554033-94d2c45f1c43',
-    category: 'Mains',
-    sides: ['Pap', 'Chips', 'Salad'],
-    drinks: [{ label: 'Iced Tea' }, { label: 'Cola' }],
-    extras: [{ label: 'Garlic butter', priceDelta: 10 }]
+    id: 2,
+    name: "Cheeseburger",
+    description: "Beef patty, cheddar, lettuce, tomato, bun.",
+    price: 65,
+    category: "Burgers",
+    image: require("../../assets/burger.png"),
+    sides: [{ id: "chips", name: "Chips", included: true }, { id: "salad", name: "Salad", included: true }],
+    drinks: [{ id: "coke", name: "Coke", price: 20 }],
+    extras: [{ id: "extra-patty", name: "Extra patty", price: 25 }],
+    options: { removable: ["lettuce", "tomato"] },
   },
   {
-    id: 's1',
-    name: 'Calamari Starter',
-    description: 'Lightly fried, lemon aioli.',
-    price: 69.99,
-    image: 'https://images.unsplash.com/photo-1481931713105-3fdf97f2ed9c',
-    category: 'Starters'
+    id: 3,
+    name: "Coke",
+    description: "Refreshing cold drink.",
+    price: 20,
+    category: "Drinks",
+    image: require("../../assets/coke.png"),
+    sides: [],
+    drinks: [],
+    extras: [],
+    options: { removable: [] },
   },
-  {
-    id: 'd1',
-    name: 'Chocolate Mousse',
-    description: 'Rich, velvety, 70% cocoa.',
-    price: 49.99,
-    image: 'https://images.unsplash.com/photo-1551024709-8f23befc6cf7',
-    category: 'Dessert'
-  },
-  {
-    id: 'be1',
-    name: 'Fresh Orange Juice',
-    description: 'Cold-pressed.',
-    price: 29.99,
-    image: 'https://images.unsplash.com/photo-1542444459-db6cc0f4a69b',
-    category: 'Beverages'
-  },
-  {
-    id: 'a1',
-    name: 'House Red Wine (Glass)',
-    description: 'Dry, fruity notes.',
-    price: 39.99,
-    image: 'https://images.unsplash.com/photo-1514361892635-6a0e47b42f5b',
-    category: 'Alcohols'
-  }
 ];
