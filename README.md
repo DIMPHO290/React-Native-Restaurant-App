@@ -64,6 +64,8 @@ git checkout dev
 ```
 5. Install dependencies:  
 ```bash
+npm cache clean --force
+rmdir /s /q node_modulesdel package-lock.json
 npm install
 ```
 6. Start Expo:  
