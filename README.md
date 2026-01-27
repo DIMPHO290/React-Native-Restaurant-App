@@ -76,8 +76,4 @@ npm start
    - Download **Expo Go** from Google Play.  
    - Scan the QR code from Expo DevTools.
   
-## Download APK (Android)
-You can download and install the Android APK here:
 
-**[Download APK on Google
-Drive](https://drive.google.com/file/d/1MHNvJcQ7LYeNCU7Mo_U7y2B6bqWmT3EC/view?usp=drive_link)**
