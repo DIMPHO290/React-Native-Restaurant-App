@@ -1,52 +1,82 @@
+// src/state/cartSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type Extra = { id: string; name: string; price: number };
-type Side = { id: string; name: string; included?: boolean; price?: number };
-type Drink = { id: string; name: string; price?: number };
+interface CartOption {
+  id: string;
+  name: string;
+  price?: number;
+}
 
-export type CartItem = {
-  id: number;            // menu item id
+interface CartItem {
+  id: string;
   name: string;
   basePrice: number;
+  sides?: CartOption[];
+  drinks?: CartOption[];
+  extras?: CartOption[];
+  notes?: string;
   quantity: number;
-  sides?: Side[];        // chosen sides (some included)
-  drinks?: Drink[];      // chosen drinks (may add price)
-  extras?: Extra[];      // add-on extras (adds price)
-  notes?: string;        // optional ingredients removed/added
+  signature: string; // unique signature for item+options
+}
+
+interface CartState {
+  items: CartItem[];
+}
+
+const initialState: CartState = {
+  items: [],
 };
 
-type CartState = { items: CartItem[] };
-
-const initialState: CartState = { items: [] };
+// Helper to generate a unique signature for each item+options combo
+const makeSignature = (item: Omit<CartItem, "signature" | "quantity">) =>
+  JSON.stringify({
+    id: item.id,
+    sides: item.sides,
+    drinks: item.drinks,
+    extras: item.extras,
+    notes: item.notes,
+  });
 
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    addToCart: (state, action: PayloadAction<CartItem>) => {
-      const key = JSON.stringify({ id: action.payload.id, sides: action.payload.sides, drinks: action.payload.drinks, extras: action.payload.extras, notes: action.payload.notes });
-      const existing = state.items.find(i => JSON.stringify({ id: i.id, sides: i.sides, drinks: i.drinks, extras: i.extras, notes: i.notes }) === key);
-      if (existing) existing.quantity += action.payload.quantity;
-      else state.items.push(action.payload);
+    addToCart: (state, action: PayloadAction<Omit<CartItem, "signature">>) => {
+      const payload = action.payload;
+      const signature = makeSignature(payload);
+
+      const existing = state.items.find(i => i.signature === signature);
+
+      if (existing) {
+        existing.quantity += payload.quantity ?? 1;
+      } else {
+        state.items.push({
+          ...payload,
+          quantity: payload.quantity ?? 1,
+          signature,
+        });
+      }
     },
-    updateQuantity: (state, action: PayloadAction<{ index: number; quantity: number }>) => {
-      const item = state.items[action.payload.index];
-      if (!item) return;
-      item.quantity = Math.max(1, action.payload.quantity);
+
+    updateQuantity: (
+      state,
+      action: PayloadAction<{ index: number; quantity: number }>
+    ) => {
+      const { index, quantity } = action.payload;
+      if (state.items[index]) {
+        state.items[index].quantity = Math.max(1, quantity);
+      }
     },
+
     removeItem: (state, action: PayloadAction<number>) => {
       state.items.splice(action.payload, 1);
     },
+
     clearCart: (state) => {
       state.items = [];
-    },
-    updateItemOptions: (state, action: PayloadAction<{ index: number; sides?: Side[]; drinks?: Drink[]; extras?: Extra[]; notes?: string }>) => {
-      const item = state.items[action.payload.index];
-      if (!item) return;
-      Object.assign(item, action.payload);
     },
   },
 });
 
-export const { addToCart, updateQuantity, removeItem, clearCart, updateItemOptions } = cartSlice.actions;
+export const { addToCart, updateQuantity, removeItem, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;

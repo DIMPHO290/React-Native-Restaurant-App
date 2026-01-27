@@ -1,4 +1,3 @@
-// src/screens/Orders.tsx
 import React from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -12,11 +11,12 @@ export default function OrdersScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const total = items.reduce((sum, i) => {
-    const extras = (i.extras ?? []).reduce((a, e) => a + (e.price ?? 0), 0);
-    const drinks = (i.drinks ?? []).reduce((a, d) => a + (d.price ?? 0), 0);
-    const unit = i.basePrice + extras + drinks;
-    return sum + unit * i.quantity;
+  const total = items.reduce((sum, item) => {
+    const extras = item.extras?.reduce((a, e) => a + (e.price ?? 0), 0) ?? 0;
+    const drinks = item.drinks?.reduce((a, d) => a + (d.price ?? 0), 0) ?? 0;
+    const base = item.basePrice ?? 0;
+    const quantity = typeof item.quantity === "number" && item.quantity > 0 ? item.quantity : 1;
+    return sum + (base + extras + drinks) * quantity;
   }, 0);
 
   return (
@@ -31,9 +31,12 @@ export default function OrdersScreen() {
             data={items}
             keyExtractor={(_, index) => index.toString()}
             renderItem={({ item, index }) => {
-              const extras = (item.extras ?? []).reduce((a, e) => a + (e.price ?? 0), 0);
-              const drinks = (item.drinks ?? []).reduce((a, d) => a + (d.price ?? 0), 0);
-              const unit = item.basePrice + extras + drinks;
+              const extras = item.extras?.reduce((a, e) => a + (e.price ?? 0), 0) ?? 0;
+              const drinks = item.drinks?.reduce((a, d) => a + (d.price ?? 0), 0) ?? 0;
+              const base = item.basePrice ?? 0;
+              const quantity = typeof item.quantity === "number" && item.quantity > 0 ? item.quantity : 1;
+              const unit = base + extras + drinks;
+
               return (
                 <View style={styles.item}>
                   <View style={{ flex: 1 }}>
@@ -51,22 +54,38 @@ export default function OrdersScreen() {
                   </View>
 
                   <View style={styles.right}>
-                    <Text style={styles.price}>{ZAR(unit * item.quantity)}</Text>
+                    <Text style={styles.price}>{ZAR(unit * quantity)}</Text>
                     <View style={styles.qtyRow}>
-                      <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch(updateQuantity({ index, quantity: Math.max(1, item.quantity - 1) }))}>
+                      <TouchableOpacity
+                        style={styles.qtyBtn}
+                        onPress={() =>
+                          dispatch(updateQuantity({ index, quantity: Math.max(1, quantity - 1) }))
+                        }
+                      >
                         <Text style={styles.qtyText}>-</Text>
                       </TouchableOpacity>
-                      <Text style={styles.qtyValue}>{item.quantity}</Text>
-                      <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch(updateQuantity({ index, quantity: item.quantity + 1 }))}>
+                      <Text style={styles.qtyValue}>{quantity}</Text>
+                      <TouchableOpacity
+                        style={styles.qtyBtn}
+                        onPress={() =>
+                          dispatch(updateQuantity({ index, quantity: quantity + 1 }))
+                        }
+                      >
                         <Text style={styles.qtyText}>+</Text>
                       </TouchableOpacity>
                     </View>
 
                     <View style={styles.actions}>
-                      <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`/item/${item.id}`)}>
+                      <TouchableOpacity
+                        style={styles.editBtn}
+                        onPress={() => router.push({ pathname: "/item/[id]" as any, params: { id: item.id } })}
+                      >
                         <Text style={styles.editText}>Edit</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.removeBtn} onPress={() => dispatch(removeItem(index))}>
+                      <TouchableOpacity
+                        style={styles.removeBtn}
+                        onPress={() => dispatch(removeItem(index))}
+                      >
                         <Text style={styles.removeText}>Remove</Text>
                       </TouchableOpacity>
                     </View>

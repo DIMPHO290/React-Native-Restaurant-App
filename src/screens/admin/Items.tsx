@@ -1,4 +1,4 @@
-// src/screens/admin/Items.tsx
+
 import React, { useState } from "react";
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from "react-native";
 import { menuItems } from "../../data/menu";

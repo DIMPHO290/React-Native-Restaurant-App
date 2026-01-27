@@ -1,5 +1,3 @@
-
-
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -12,14 +10,20 @@ function CheckoutScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  // ✅ Use basePrice and safe defaults
+  const total = items.reduce((sum, i) => {
+    const extras = i.extras?.reduce((a, e) => a + (e.price ?? 0), 0) ?? 0;
+    const drinks = i.drinks?.reduce((a, d) => a + (d.price ?? 0), 0) ?? 0;
+    const base = i.basePrice ?? 0;
+    const quantity = typeof i.quantity === "number" && i.quantity > 0 ? i.quantity : 1;
+    return sum + (base + extras + drinks) * quantity;
+  }, 0);
 
-const handlePayment = () => {
-  alert("Thank you for your order.");   
-  dispatch(clearCart());              
-  router.push("/orders");              
-};
-
+  const handlePayment = () => {
+    alert("Thank you for your order.");
+    dispatch(clearCart());
+    router.push("/orders");
+  };
 
   return (
     <View style={styles.container}>
@@ -34,14 +38,22 @@ const handlePayment = () => {
             keyExtractor={(item, index) =>
               item.id ? item.id.toString() : index.toString()
             }
-            renderItem={({ item }) => (
-              <View style={styles.item}>
-                <Text style={styles.name}>
-                  {item.name} x{item.quantity}
-                </Text>
-                <Text style={styles.price}>R{item.price * item.quantity}</Text>
-              </View>
-            )}
+            renderItem={({ item }) => {
+              const extras = item.extras?.reduce((a, e) => a + (e.price ?? 0), 0) ?? 0;
+              const drinks = item.drinks?.reduce((a, d) => a + (d.price ?? 0), 0) ?? 0;
+              const base = item.basePrice ?? 0;
+              const quantity = typeof item.quantity === "number" && item.quantity > 0 ? item.quantity : 1;
+              const unit = base + extras + drinks;
+
+              return (
+                <View style={styles.item}>
+                  <Text style={styles.name}>
+                    {item.name} x{quantity}
+                  </Text>
+                  <Text style={styles.price}>R{unit * quantity}</Text>
+                </View>
+              );
+            }}
           />
 
           <Text style={styles.total}>Total: R{total}</Text>

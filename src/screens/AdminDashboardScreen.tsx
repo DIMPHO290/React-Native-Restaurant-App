@@ -4,13 +4,13 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 
 export default function AdminDashboardScreen() {
-  const menu = useSelector((s: RootState) => s.menu.items);
-  const orders = useSelector((s: RootState) => s.orders.orders);
+  const menu = useSelector((s: RootState) => (s.menu as any).items);
+  const orders = useSelector((s: RootState) => (s.orders as any).orders);
 
-  const byCat = menu.reduce<Record<string, number>>((acc: any, m: any) => {
+  const byCat = menu.reduce((acc: Record<string, number>, m: any) => {
     acc[m.category] = (acc[m.category] ?? 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
   const revenue = orders.reduce((sum :any, o: any) => sum + o.total, 0);
 
