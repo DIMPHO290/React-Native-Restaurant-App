@@ -1,48 +1,54 @@
-// src/state/orderSlice.ts
+// src/state/ordersSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { CartItem } from "./cartSlice";
 
-export type OrderItem = {
+export interface Order {
   id: string;
-  uid: string;
-  items: Array<{
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-    sides?: string[];
-    drinks?: { name: string; price?: number }[];
-    extras?: { name: string; price: number }[];
-    options?: Record<string, any>;
-  }>;
+  items: CartItem[];
   total: number;
-  status: "pending" | "paid" | "preparing" | "delivered" | "cancelled";
-  createdAt: number;
-};
+  status: "pending" | "completed" | "cancelled";
+  user?: any;
+}
 
-type OrdersState = {
-  list: OrderItem[];
-};
+interface OrdersState {
+  orders: Order[];
+}
 
 const initialState: OrdersState = {
-  list: [],
+  orders: [],
 };
 
 const ordersSlice = createSlice({
   name: "orders",
   initialState,
   reducers: {
-    addOrder: (state, action: PayloadAction<OrderItem>) => {
-      state.list.unshift(action.payload);
+    addOrder: (
+      state,
+      action: PayloadAction<{ items: CartItem[]; total: number; user?: any }>
+    ) => {
+      const { items, total, user } = action.payload;
+      state.orders.push({
+        id: Date.now().toString(),
+        items,
+        total,
+        status: "pending", // ✅ default status
+        user,
+      });
     },
-    setStatus: (state, action: PayloadAction<{ id: string; status: OrderItem["status"] }>) => {
-      const idx = state.list.findIndex(o => o.id === action.payload.id);
-      if (idx !== -1) state.list[idx].status = action.payload.status;
+    updateOrderStatus: (
+      state,
+      action: PayloadAction<{ id: string; status: "pending" | "completed" | "cancelled" }>
+    ) => {
+      const order = state.orders.find(o => o.id === action.payload.id);
+      if (order) {
+        order.status = action.payload.status;
+      }
     },
     clearOrders: (state) => {
-      state.list = [];
+      state.orders = [];
     },
   },
 });
 
-export const { addOrder, setStatus, clearOrders } = ordersSlice.actions;
+export const { addOrder, updateOrderStatus, clearOrders } = ordersSlice.actions;
 export default ordersSlice.reducer;

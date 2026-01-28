@@ -1,90 +1,329 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-//import { clearCart, editQty, removeFromCart } from '@/state/cartSlice';
-import { clearCart , editQty, removeFromCart  } from '../state/cartSlice';
-// import { calcCartTotal } from '@/state/cartSlice';
-import { calcCartTotal } from '../state/cartSlice';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
- import { RootStackParamList } from '../../app/(tabs)/App'
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../state/store";
+import {
+  updateQuantity,
+  removeItem,
+  clearCart,
+} from "../state/cartSlice";
+import { useRouter } from "expo-router";
+import { ZAR } from "../utils/currency";
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Cart'>;
-
-export default function CartScreen({ navigation }: Props) {
-  const items = useSelector((s: RootState) => s.cart.items);
+export default function CartScreen() {
+  const items = useSelector((state: RootState) => state.cart.items);
   const dispatch = useDispatch();
-  const total = calcCartTotal(items);
+  const router = useRouter();
+
+  // ✅ Calculate total locally
+  const total = items.reduce((sum, item) => {
+    const extras =
+      item.extras?.reduce((a, e) => a + (e.price ?? 0), 0) ?? 0;
+
+    const drinks =
+      item.drinks?.reduce((a, d) => a + (d.price ?? 0), 0) ?? 0;
+
+    return (
+      sum +
+      (item.basePrice + extras + drinks) * (item.quantity || 1)
+    );
+  }, 0);
+
+  if (items.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Your Cart</Text>
+        <Text style={styles.empty}>Your cart is empty</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.wrap}>
+    <View style={styles.container}>
+      <Text style={styles.title}>Your Cart</Text>
+
       <FlatList
-        contentContainerStyle={styles.content}
         data={items}
-        keyExtractor={(i) => i.id}
-        ListHeaderComponent={<Text style={styles.h1}>Your cart</Text>}
-        ListEmptyComponent={<Text style={styles.empty}>Your cart is empty</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Image source={{ uri: item.image }} style={styles.img} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.meta}>Qty: {item.qty}</Text>
-              <View style={styles.row}>
-                <TouchableOpacity
-                  style={styles.qtyBtn}
-                  onPress={() => dispatch(editQty({ id: item.id, qty: Math.max(1, item.qty - 1) }))}
-                >
-                  <Text style={styles.qtyText}>-</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.qtyBtn}
-                  onPress={() => dispatch(editQty({ id: item.id, qty: item.qty + 1 }))}
-                >
-                  <Text style={styles.qtyText}>+</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.delBtn} onPress={() => dispatch(removeFromCart({ id: item.id }))}>
-                  <Text style={styles.delText}>Remove</Text>
-                </TouchableOpacity>
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item, index }) => {
+          const extras =
+            item.extras?.reduce(
+              (a, e) => a + (e.price ?? 0),
+              0
+            ) ?? 0;
+
+          const drinks =
+            item.drinks?.reduce(
+              (a, d) => a + (d.price ?? 0),
+              0
+            ) ?? 0;
+
+          const unitPrice =
+            item.basePrice + extras + drinks;
+
+          return (
+            <View style={styles.item}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{item.name}</Text>
+
+                <Text style={styles.meta}>
+                  Sides:{" "}
+                  {item.sides?.map(s => s.name).join(", ") ||
+                    "None"}
+                </Text>
+
+                <Text style={styles.meta}>
+                  Drinks:{" "}
+                  {item.drinks?.map(d => d.name).join(", ") ||
+                    "None"}
+                </Text>
+
+                <Text style={styles.meta}>
+                  Extras:{" "}
+                  {item.extras?.map(e => e.name).join(", ") ||
+                    "None"}
+                </Text>
+
+                {item.notes ? (
+                  <Text style={styles.meta}>
+                    Notes: {item.notes}
+                  </Text>
+                ) : null}
+              </View>
+
+              <View style={styles.right}>
+                <Text style={styles.price}>
+                  {ZAR(unitPrice * item.quantity)}
+                </Text>
+
+                <View style={styles.qtyRow}>
+                  <TouchableOpacity
+                    style={styles.qtyBtn}
+                    onPress={() =>
+                      dispatch(
+                        updateQuantity({
+                          index,
+                          quantity: Math.max(
+                            1,
+                            item.quantity - 1
+                          ),
+                        })
+                      )
+                    }
+                  >
+                    <Text style={styles.qtyText}>-</Text>
+                  </TouchableOpacity>
+
+                  <Text style={styles.qtyValue}>
+                    {item.quantity}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.qtyBtn}
+                    onPress={() =>
+                      dispatch(
+                        updateQuantity({
+                          index,
+                          quantity: item.quantity + 1,
+                        })
+                      )
+                    }
+                  >
+                    <Text style={styles.qtyText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={styles.editBtn}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/item/[id]" as any,
+                        params: {
+                          id: item.id,
+                          cartIndex: index,
+                        },
+                      })
+                    }
+                  >
+                    <Text style={styles.editText}>Edit</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.removeBtn}
+                    onPress={() =>
+                      dispatch(removeItem(index))
+                    }
+                  >
+                    <Text style={styles.removeText}>
+                      Remove
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        )}
+          );
+        }}
       />
-      <View style={styles.footer}>
-        <Text style={styles.total}>Total: R {total.toFixed(2)}</Text>
-        <View style={styles.footerRow}>
-          <TouchableOpacity style={styles.clear} onPress={() => dispatch(clearCart())}>
-            <Text style={styles.clearText}>Clear cart</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.checkout} onPress={() => navigation.navigate('Checkout')}>
-            <Text style={styles.checkoutText}>Checkout</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+
+      <Text style={styles.total}>
+        Total: {ZAR(total)}
+      </Text>
+
+      <TouchableOpacity
+        style={styles.checkoutBtn}
+        onPress={() => router.push("/checkout")}
+      >
+        <Text style={styles.checkoutText}>
+          Proceed to Checkout
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.clearBtn}
+        onPress={() => dispatch(clearCart())}
+      >
+        <Text style={styles.clearText}>
+          Clear Cart
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: '#f4f6f8' },
-  content: { padding: 16 },
-  h1: { fontSize: 22, fontWeight: '800', marginBottom: 12, color: '#1f1f1f' },
-  empty: { color: '#666', textAlign: 'center', marginTop: 20 },
-  card: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#eee', padding: 12, marginBottom: 12, gap: 12 },
-  img: { width: 90, height: 90, borderRadius: 10 },
-  name: { fontSize: 16, fontWeight: '700', color: '#1f1f1f' },
-  meta: { color: '#666', marginTop: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  qtyBtn: { backgroundColor: '#f0f2f5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#e1e5ea' },
-  qtyText: { fontSize: 16, fontWeight: '700' },
-  delBtn: { marginLeft: 'auto', backgroundColor: '#c53030', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  delText: { color: '#fff', fontWeight: '700' },
-  footer: { padding: 16, borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fff' },
-  footerRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  total: { fontSize: 16, fontWeight: '800', color: '#1f1f1f' },
-  clear: { flex: 1, backgroundColor: '#f0f2f5', paddingVertical: 10, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#e1e5ea' },
-  clearText: { color: '#222', fontWeight: '700' },
-  checkout: { flex: 1, backgroundColor: '#1f7aed', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  checkoutText: { color: '#fff', fontWeight: '800' }
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+
+  empty: {
+    color: "#666",
+    fontSize: 14,
+  },
+
+  item: {
+    flexDirection: "row",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  name: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  meta: {
+    fontSize: 12,
+    color: "#666",
+  },
+
+  right: {
+    alignItems: "flex-end",
+  },
+
+  price: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1f7aed",
+  },
+
+  qtyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+
+  qtyBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#eee",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  qtyText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  qtyValue: {
+    marginHorizontal: 8,
+    fontWeight: "700",
+  },
+
+  actions: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+
+  editBtn: {
+    backgroundColor: "#ffc107",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+
+  editText: {
+    fontWeight: "700",
+  },
+
+  removeBtn: {
+    backgroundColor: "#dc3545",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+
+  removeText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+
+  total: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginVertical: 12,
+  },
+
+  checkoutBtn: {
+    backgroundColor: "#28a745",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+
+  checkoutText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "700",
+  },
+
+  clearBtn: {
+    backgroundColor: "#6c757d",
+    padding: 12,
+    borderRadius: 8,
+  },
+
+  clearText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "700",
+  },
 });

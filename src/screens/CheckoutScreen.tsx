@@ -10,8 +10,8 @@ function CheckoutScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // ✅ Use basePrice and safe defaults
-  const total = items.reduce((sum, i) => {
+ 
+  const total = items.reduce((sum,i) => {
     const extras = i.extras?.reduce((a, e) => a + (e.price ?? 0), 0) ?? 0;
     const drinks = i.drinks?.reduce((a, d) => a + (d.price ?? 0), 0) ?? 0;
     const base = i.basePrice ?? 0;
